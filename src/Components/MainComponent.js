@@ -52,7 +52,11 @@ function MainComponent(props) {
 
     const identity = {
         href: "#",
-        title: "Data Mesh UI"
+        title: "Freyr Data Mesh",
+        logo: {
+            src:
+            "/public/freyr-icon.png"
+        }
     }
 
     const handleMenuClick = async(event) => {
