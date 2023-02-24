@@ -40,7 +40,7 @@ function RegisterNewProductComponent(props) {
     const [spinnerVisible, setSpinnerVisible] = useState(false)
     const [owner, setOwner] = useState(false)
     const [modalVisible, setModalVisible] = useState(false)
- 
+    const [dbvalue,setDbvalue] = useState(false);
     // const onCancel = () => {
     //     window.location.href="/product-registration/list";
     // }
@@ -217,37 +217,43 @@ function RegisterNewProductComponent(props) {
     }
 
     const renderDatabaseDetails = () => {
-        if (database) {
+        if(dbvalue){
+            if (database) {
+                return (
+                    <ColumnLayout columns={2} variant="text-grid">
+                        <SpaceBetween size="m">
+                            <ValueWithLabel label="Data Domain">
+                                {database.Database.Name}
+                            </ValueWithLabel>
+                            <ValueWithLabel label="Location">
+                                {database.Database.LocationUri}
+                            </ValueWithLabel>
+                        </SpaceBetween>
+                        <SpaceBetween size="m">
+                            <ValueWithLabel label="Data Owner">
+                                {(database.Database.Parameters && "data_owner_name" in database.Database.Parameters) ? database.Database.Parameters.data_owner_name : "n/a"}
+                            </ValueWithLabel>
+                            <ValueWithLabel label="Data Owner Account ID">
+                                {(database.Database.Parameters && "data_owner" in database.Database.Parameters) ? database.Database.Parameters.data_owner : "n/a"}   
+                            </ValueWithLabel>
+                            <ValueWithLabel label="Tags">
+                                <ResourceLFTagsComponent resourceType="database" resourceName={database.Database.Name} />
+                            </ValueWithLabel>
+                        </SpaceBetween>
+                    </ColumnLayout>   
+                )
+            }
+    
             return (
-                <ColumnLayout columns={2} variant="text-grid">
-                    <SpaceBetween size="m">
-                        <ValueWithLabel label="Data Domain">
-                            {database.Database.Name}
-                        </ValueWithLabel>
-                        <ValueWithLabel label="Location">
-                            {database.Database.LocationUri}
-                        </ValueWithLabel>
-                    </SpaceBetween>
-                    <SpaceBetween size="m">
-                        <ValueWithLabel label="Data Owner">
-                            {(database.Database.Parameters && "data_owner_name" in database.Database.Parameters) ? database.Database.Parameters.data_owner_name : "n/a"}
-                        </ValueWithLabel>
-                        <ValueWithLabel label="Data Owner Account ID">
-                            {(database.Database.Parameters && "data_owner" in database.Database.Parameters) ? database.Database.Parameters.data_owner : "n/a"}   
-                        </ValueWithLabel>
-                        <ValueWithLabel label="Tags">
-                            <ResourceLFTagsComponent resourceType="database" resourceName={database.Database.Name} />
-                        </ValueWithLabel>
-                    </SpaceBetween>
-                </ColumnLayout>   
+                <Alert header="Object Not Found" type="error">
+                    The requested Data Domain object can't be found. Please go back to the previous page.
+                </Alert>
+            )
+        }else{
+            return (
+                <Spinner size="big" />
             )
         }
-
-        return (
-            <Alert header="Object Not Found" type="error">
-                The requested Data Domain object can't be found. Please go back to the previous page.
-            </Alert>
-        )
     }
 
     useEffect(() => {
@@ -257,8 +263,8 @@ function RegisterNewProductComponent(props) {
             const glueClient = new GlueClient({region: config.aws_project_region, credentials: Auth.essentialCredentials(credentials)})
             const dbResult = await glueClient.send(new GetDatabaseCommand({Name: domainId}))
             setDatabase(dbResult)
-
             if (dbResult) {
+                setDbvalue(true)
                 setOwner(await DataDomain.isOwner(dbResult.Database.Parameters.data_owner))
             }
         })()
